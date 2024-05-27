@@ -1,14 +1,33 @@
-import pandas as pd
+#Bu Python kodu, iki Excel dosyasındaki ilaçla alakalı verilerini bir araya getirip ortak ilaçların hedef ve yolak bilgilerini tek bir dosyada birleştirerek kaydeder.
+
+import pandas as pd 
+
+#İki Excel dosyasını da pandas yardımıyla okunarak veri çerçeveleri oluşturulur.
 data_df1 = pd.read_excel('C:/Users/Dogachan/Desktop/GDSC1_fitted_dose_response_27Oct23.xlsx')
-data_df2 = pd.read_excel('C:/Users/Dogachan/Desktop/GDSC2_fitted_dose_response_27Oct23.xlsx')
+data_df2 = pd.read_excel('C:/Users/Dogachan/Desktop/GDSC2_fitted_dose_response_27Oct23.xlsx') 
+
+#her iki  veri çerçevesindeki (data_df1/df2) ilaç isimleri (DRUG_NAME) bir kümeye alınır.
 compounds_gdsc1 = set(data_df1['DRUG_NAME'])
 compounds_gdsc2 = set(data_df2['DRUG_NAME'])
+
+# 'column_c', 'compounds_gdsc1' ve 'compounds_gdsc2' kümelerinin kesişimi bulunarak ortak ilaçlar belirlenir.:
 common_compounds = set(column_c) & set(compounds_gdsc1) & set(compounds_gdsc2)
+
+#Her iki veri çerçevesinden de (data_df1/df2) ortak ilaçların isim, hedef ve yolak bilgileri alınır.
 common_gdsc1 = data_df1[data_df1['DRUG_NAME'].isin(common_compounds)][['DRUG_NAME', 'PUTATIVE_TARGET', 'PATHWAY_NAME']]
 common_gdsc2 = data_df2[data_df2['DRUG_NAME'].isin(common_compounds)][['DRUG_NAME', 'PUTATIVE_TARGET', 'PATHWAY_NAME']]
 
+#İki veri çerçevesi birleştirilir.
 df_common = pd.concat([common_gdsc1, common_gdsc2])
+
+#Birleştirilmiş veri çerçevesi bir Excel dosyasına kaydedilir.
 df_common.to_excel("name_target_pathway.xlsx", index=False)
+
+#Bu dosya yeniden okunarak veri çerçevesine alınır.
 df = pd.read_excel("C:/Users/Dogachan/Desktop/name_target_pathway.xlsx")
+
+#Aynı ilaç ismnde olan satırlar kaldırılır.
 df_unique = df.drop_duplicates(subset=["DRUG_NAME"])
+
+#Tekrarlama gibi sonucu olumsuz etkileyeeck etmenler kaldırıldıktan sonra veriler yeni bir Excel'e kaydedilir.
 df_unique.to_excel("C:/Users/Dogachan/Desktop/name_target_pathway_filtered.xlsx", index=False)
