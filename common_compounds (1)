@@ -1,0 +1,14 @@
+import pandas as pd
+data_df1 = pd.read_excel('C:/Users/Dogachan/Desktop/GDSC1_fitted_dose_response_27Oct23.xlsx')
+data_df2 = pd.read_excel('C:/Users/Dogachan/Desktop/GDSC2_fitted_dose_response_27Oct23.xlsx')
+compounds_gdsc1 = set(data_df1['DRUG_NAME'])
+compounds_gdsc2 = set(data_df2['DRUG_NAME'])
+common_compounds = set(column_c) & set(compounds_gdsc1) & set(compounds_gdsc2)
+common_gdsc1 = data_df1[data_df1['DRUG_NAME'].isin(common_compounds)][['DRUG_NAME', 'PUTATIVE_TARGET', 'PATHWAY_NAME']]
+common_gdsc2 = data_df2[data_df2['DRUG_NAME'].isin(common_compounds)][['DRUG_NAME', 'PUTATIVE_TARGET', 'PATHWAY_NAME']]
+
+df_common = pd.concat([common_gdsc1, common_gdsc2])
+df_common.to_excel("name_target_pathway.xlsx", index=False)
+df = pd.read_excel("C:/Users/Dogachan/Desktop/name_target_pathway.xlsx")
+df_unique = df.drop_duplicates(subset=["DRUG_NAME"])
+df_unique.to_excel("C:/Users/Dogachan/Desktop/name_target_pathway_filtered.xlsx", index=False)
