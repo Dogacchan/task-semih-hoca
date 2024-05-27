@@ -1,11 +1,13 @@
+#Bu kod, Excel dosyasındaki belirlenen sütunları seçerek analiz eder, ardından hasta yanıtlarını skorlayarak yeni bir Excel dosyasına kaydeder.
+
 import pandas as pd
 
-df = pd.read_excel('C:/Users/Egehan/ETeber_Project/TCGA-patient-response.xlsx', sheet_name='Table S2')
+df = pd.read_excel('C:/Users/Dogachan/Desktop/TCGA-patient-response.xlsx', sheet_name='Table S2')
 columns_to_analyze = df.iloc[:, [0, 1, 2, 4]]
 columns_to_analyze.columns = ['Cancer', 'bcr_patient_barcode', 'drug_name', 'measure_of_response']
-columns_to_analyze.to_excel('C:/Users/Egehan/ETeber_Project/selected_columns.xlsx', index=False)
+columns_to_analyze.to_excel('C:/Users/Dogachan/Desktop/selected_columns.xlsx', index=False)
 
-df = pd.read_excel('C:/Users/Egehan/ETeber_Project/selected_columns.xlsx')
+df = pd.read_excel('C:/Users/Dogachan/Desktop/selected_columns.xlsx')
 def response_score(response):
     if response in ['Partial Response', 'Complete Response']:
         return 1
@@ -13,4 +15,4 @@ def response_score(response):
         return 0
 
 df['Score'] = df['measure_of_response'].apply(response_score)
-df.to_excel('C:/Users/Egehan/ETeber_Project/response_with_scores.xlsx', index=False)
+df.to_excel('C:/Users/Dogachan/Desktop/response_with_scores.xlsx', index=False)
