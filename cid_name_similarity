@@ -1,0 +1,101 @@
+import pandas as pd
+import pubchempy as pcp
+
+txt_file = r'C:\Users\Egehan\Downloads\ComboCompoundNames_all.txt'
+
+with open(txt_file, 'r') as file:
+    lines = file.readlines()
+
+drug_names_list = [line.split()[1].strip() for line in lines]
+
+total_compounds = len(drug_names_list)
+
+cid_list = []
+smiles_list = []
+
+print("Preparing data...")
+
+for idx, drug_name in enumerate(drug_names_list):
+    try:
+        compound = pcp.get_compounds(drug_name, 'name')
+        if compound:
+            cid_list.append(compound[0].cid)
+            smiles_list.append(compound[0].to_dict(properties=['canonical_smiles'])['canonical_smiles'])
+        else:
+            cid_list.append(None)
+            smiles_list.append(None)
+    except Exception as e:
+        cid_list.append(None)
+        smiles_list.append(None)
+
+result_df = pd.DataFrame({"Drug Name": drug_names_list, "CID": cid_list, "SMILES": smiles_list})
+
+output_excel = r"C:\Users\Egehan\ETeber_Project\txt_name_cid_smiles.xlsx"
+result_df.to_excel(output_excel, index=False)
+print(f"Results written to Excel file: {output_excel}")
+
+
+////////////////////////
+
+
+import pandas as pd
+
+original_excel_file = r"C:\Users\Egehan\ETeber_Project\txt_name_cid_smiles.xlsx"
+df_original = pd.read_excel(original_excel_file)
+
+filtered_df = df_original.drop_duplicates(subset=["CID", "SMILES"], keep="first").dropna()
+
+output_excel_filtered = r"C:\Users\Egehan\ETeber_Project\txt_name_cid_smiles_filtered.xlsx"
+filtered_df.to_excel(output_excel_filtered, index=False)
+print(f"Filtered results written to Excel file: {output_excel_filtered}")
+
+
+/////////////////////
+
+import pandas as pd
+from rdkit import Chem
+from rdkit.Chem import AllChem
+from rdkit.DataStructs import TanimotoSimilarity
+from itertools import combinations  
+
+def calculate_tanimoto_similarity(smiles_list):
+    similarities = []
+    cids = []
+    names = []
+
+    for (cid1, name1), (cid2, name2) in combinations(zip(df["CID"].tolist(), df["Drug Name"].tolist()), 2):
+        smi1 = df.loc[df["CID"] == cid1, "SMILES"].values[0]
+        smi2 = df.loc[df["CID"] == cid2, "SMILES"].values[0]
+
+        mol1 = Chem.MolFromSmiles(smi1)
+        mol2 = Chem.MolFromSmiles(smi2)
+
+        if mol1 is not None and mol2 is not None:
+            fp1 = AllChem.GetMorganFingerprintAsBitVect(mol1, 3, nBits=2048)
+            fp2 = AllChem.GetMorganFingerprintAsBitVect(mol2, 3, nBits=2048)
+            similarity = TanimotoSimilarity(fp1, fp2)
+
+            similarities.append(similarity)
+            cids.append(f"{cid1}-{cid2}")
+            names.append(f"{name1}-{name2}")
+
+    return pd.DataFrame({"CID": cids, "Drug Name": names, "Similarity": similarities})
+
+
+excel_file = r"C:\Users\Egehan\ETeber_Project\txt_name_cid_smiles_filtered.xlsx"
+df = pd.read_excel(excel_file)
+
+
+result_df = calculate_tanimoto_similarity(df["SMILES"])
+
+
+high_similarity_df = result_df[result_df["Similarity"] > 0.50].sort_values(by="Similarity", ascending=False)
+
+
+very_high_similarity_df = result_df[result_df["Similarity"] > 0.80].sort_values(by="Similarity", ascending=False)
+
+
+with pd.ExcelWriter("tanimoto_similarity_results.xlsx", engine="xlsxwriter") as writer:
+    high_similarity_df.to_excel(writer, sheet_name="High Similarity", index=False)
+    very_high_similarity_df.to_excel(writer, sheet_name="Very High Similarity", index=False)
+
