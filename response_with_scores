@@ -1,18 +1,34 @@
 #Bu kod, Excel dosyasındaki belirlenen sütunları seçerek analiz eder, ardından hasta yanıtlarını skorlayarak yeni bir Excel dosyasına kaydeder.
 
+//////////////////Belirli Sütunları Seçme////////////////
+
+#Pandas kütüphanesi içeri aktarılır.
 import pandas as pd
 
+#Blirlenen Excel dosyasından veriler okunur ve sadece analizi amaçlanan sütunlar seçilir.
 df = pd.read_excel('C:/Users/Dogachan/Desktop/TCGA-patient-response.xlsx', sheet_name='Table S2')
 columns_to_analyze = df.iloc[:, [0, 1, 2, 4]]
+
+#Seçilen sütunlara çalışmanın kolaylaşması amacıyla isimler verilir.
 columns_to_analyze.columns = ['Cancer', 'bcr_patient_barcode', 'drug_name', 'measure_of_response']
+
+#Sçilen sütunlar yeni bir Excel dosyasına kaydedilir.
 columns_to_analyze.to_excel('C:/Users/Dogachan/Desktop/selected_columns.xlsx', index=False)
 
+///////////Yanıtları Skorlamak//////////////
+
+#Yeni kaydedilen Excel dosyası tekrar açılır ve okunur.
 df = pd.read_excel('C:/Users/Dogachan/Desktop/selected_columns.xlsx')
+
+#Hasta tedaviye yanıtlarını skorlama fonksiyonu tanımlıyoruz
 def response_score(response):
     if response in ['Partial Response', 'Complete Response']:
         return 1
     else:
         return 0
 
+#Bu fonksiyon kullanılarak 'measure_of_response' sütunundaki yanıtlar skorlanır ve yeni bir 'Score' sütunu eklenir.
 df['Score'] = df['measure_of_response'].apply(response_score)
+
+#Skorların da eklendiği veriler yeni bir Excel dosyasına kaydedilir.
 df.to_excel('C:/Users/Dogachan/Desktop/response_with_scores.xlsx', index=False)
