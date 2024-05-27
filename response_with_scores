@@ -1,0 +1,16 @@
+import pandas as pd
+
+df = pd.read_excel('C:/Users/Egehan/ETeber_Project/TCGA-patient-response.xlsx', sheet_name='Table S2')
+columns_to_analyze = df.iloc[:, [0, 1, 2, 4]]
+columns_to_analyze.columns = ['Cancer', 'bcr_patient_barcode', 'drug_name', 'measure_of_response']
+columns_to_analyze.to_excel('C:/Users/Egehan/ETeber_Project/selected_columns.xlsx', index=False)
+
+df = pd.read_excel('C:/Users/Egehan/ETeber_Project/selected_columns.xlsx')
+def response_score(response):
+    if response in ['Partial Response', 'Complete Response']:
+        return 1
+    else:
+        return 0
+
+df['Score'] = df['measure_of_response'].apply(response_score)
+df.to_excel('C:/Users/Egehan/ETeber_Project/response_with_scores.xlsx', index=False)
